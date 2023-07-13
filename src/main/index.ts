@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -17,33 +17,46 @@ function createWindow(): void {
       sandbox: false
     }
   })
-  const client: MDPClient = new MDPClient(10, 'tcp://localhost:5051', 'SCD01')
+  const scdclient: MDPClient = new MDPClient(10, 'tcp://localhost:5051', 'SCD01')
+  const mdpclient: MDPClient = new MDPClient(10, 'tcp://localhost:5051', 'C01')
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
 
-    client.on((connected) => {
+    scdclient.on((connected) => {
       mainWindow?.webContents.send('connectionChanged', connected)
     })
-    client.tryConnect()
-    client.onResponseArrived((msg, data) => {
-      console.log(`msg: ${msg} data: ${data}`)
+    mdpclient.on((connected) => {
+      console.log(`[C01] connected: ${connected}`)
+    })
+    scdclient.tryConnect()
+    scdclient.onResponseArrived((msg, data) => {
+      console.log(`[SDC01]msg: ${msg} data: ${data}`)
       mainWindow?.webContents.send('sensorStatusChanged', msg[2], data)
+    })
+    mdpclient.tryConnect()
+    mdpclient.onResponseArrived((msg, data) => {
+      mainWindow?.webContents.send('onMessageArrived', `[C01] msg: ${msg} data: ${data}`)
     })
     setInterval(() => {
       getSensors()
-    }, 1000)
+    }, 10000)
   })
   const getSensors = (): void => {
     const sensors = ['map', 'radar']
     for (const item of sensors) {
-      client.send('mmi.service', item)
+      scdclient.send('mmi.service', item)
     }
   }
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
+  ipcMain.on('sendMessage', (_, { servicename, request }) => {
+    console.log(`[C01] msg: ${servicename}`)
+    mdpclient.send(servicename, request)
+  })
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

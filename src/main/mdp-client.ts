@@ -42,11 +42,11 @@ export class MDPClient {
     this.handleAnswerArrivedEvent = callback
   }
   send(servicename: string, request: string): void {
-    if (this.queue.length > this.max) {
-      throw new Error('Queue is full')
-    }
     if (!this.isConnected) {
       return
+    }
+    if (this.queue.length > this.max) {
+      throw new Error('Queue is full')
     }
     this.queue.push([this.MDP_CLIENT_HEADER, servicename, request])
     this.trySend()

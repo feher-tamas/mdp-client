@@ -20,11 +20,23 @@ function App(): JSX.Element {
   ]
   const [isConnected, setConnected] = useState<boolean>(false)
   const [services, setServices] = useState<ConnectionItemType[]>(initSate)
+  const [serviceName, setServiceName] = useState('')
+  const [message, setMessage] = useState('')
+  const [responses, setResponses] = useState<string>()
 
   const updateService = useCallback((name: string, status: string): void => {
     setServices((services) =>
       services.map((service) => (service.name === name ? { ...service, status } : service))
     )
+  }, [])
+
+  const sendMessage = useCallback((servicename: string, request: string): void => {
+    console.log(`servicename ${servicename}`)
+    window.main.sendMessage(servicename, request)
+  }, [])
+
+  const addResponses = useCallback((response: string): void => {
+    setResponses(response)
   }, [])
   useEffect(() => {
     window.main.onConnectionChange((connected) => {
@@ -34,8 +46,12 @@ function App(): JSX.Element {
 
   useEffect(() => {
     window.main.onSensorStatusChanged((name, status) => {
-      console.log(status)
       updateService(name, status)
+    })
+  }, [])
+  useEffect(() => {
+    window.main.onMessageArrived((message) => {
+      addResponses(message)
     })
   }, [])
 
@@ -56,6 +72,27 @@ function App(): JSX.Element {
           return null
         })}
       </h2>
+      <h2> Message Sending :</h2>
+      <div>
+        <label>
+          service:{' '}
+          <input
+            name="myInput"
+            value={serviceName}
+            onChange={(e) => setServiceName(e.target.value)}
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          message:{' '}
+          <input name="myMessage" value={message} onChange={(e) => setMessage(e.target.value)} />
+        </label>
+      </div>
+      <button onClick={() => sendMessage(serviceName, message)}> Send Message</button>
+      <div>
+        responses :<span>{responses}</span>
+      </div>
     </>
   )
 }

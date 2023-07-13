@@ -6,10 +6,17 @@ const api = {
   onConnectionChange: (callback: (connected: boolean) => void): void => {
     ipcRenderer.on('connectionChanged', (_, connected) => callback(connected))
   },
+  onMessageArrived: (callback: (message: string) => void): void => {
+    ipcRenderer.on('onMessageArrived', (_, message) => callback(message))
+  },
   onSensorStatusChanged: (callback: (name: string, status: string) => void): void => {
     ipcRenderer.on('sensorStatusChanged', (_, name: string, status: string) =>
       callback(name, status)
     )
+  },
+  sendMessage: (servicename, request): void => {
+    console.log(`Preload ${servicename}`)
+    ipcRenderer.send('sendMessage', { servicename, request })
   }
 }
 
