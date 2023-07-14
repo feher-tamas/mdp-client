@@ -6,25 +6,19 @@ function App(): JSX.Element {
     name: string
     status: string
   }
-  const initSate: ConnectionItemType[] = [
-    {
-      id: 1,
-      status: 'Unknown',
-      name: 'map'
-    },
-    {
-      id: 2,
-      status: 'Unknown',
-      name: 'radar'
-    }
-  ]
+  const initSate: ConnectionItemType[] = []
+  window.main.onGetSensors((sensors) => {
+    sensors.map((item, index) => {
+      initSate.push({ id: index, name: item, status: 'Unknow' })
+    })
+  })
   const [isConnected, setConnected] = useState<boolean>(false)
   const [services, setServices] = useState<ConnectionItemType[]>(initSate)
   const [serviceName, setServiceName] = useState('')
   const [message, setMessage] = useState('')
   const [responses, setResponses] = useState<string>()
-
   const updateService = useCallback((name: string, status: string): void => {
+    console.log(name)
     setServices((services) =>
       services.map((service) => (service.name === name ? { ...service, status } : service))
     )
@@ -57,17 +51,13 @@ function App(): JSX.Element {
 
   return (
     <>
-      <h2>Broker is connected : {isConnected ? <li>true</li> : <li>false</li>}</h2>
+      <h2>Broker: {isConnected ? 'connected' : 'disconnected'}</h2>
       <h2>
         {' '}
         Service Discovery :
         {services.map((item) => {
           if (item.status == 'Ok') {
-            return (
-              <li key={item.id}>
-                {item.name} {item.status}
-              </li>
-            )
+            return <li key={item.id}>{item.name}</li>
           }
           return null
         })}
@@ -75,12 +65,16 @@ function App(): JSX.Element {
       <h2> Message Sending :</h2>
       <div>
         <label>
-          service:{' '}
-          <input
-            name="myInput"
-            value={serviceName}
-            onChange={(e) => setServiceName(e.target.value)}
-          />
+          Available services:{' '}
+          <select onChange={(e) => setServiceName(e.target.value)}>
+            <option key={-1}>please select...</option>
+            {services.map((item) => {
+              if (item.status == 'Ok') {
+                return <option key={item.id}>{item.name}</option>
+              }
+              return null
+            })}
+          </select>
         </label>
       </div>
       <div>
@@ -91,7 +85,7 @@ function App(): JSX.Element {
       </div>
       <button onClick={() => sendMessage(serviceName, message)}> Send Message</button>
       <div>
-        responses :<span>{responses}</span>
+        response :<span>{responses}</span>
       </div>
     </>
   )

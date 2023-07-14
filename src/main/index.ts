@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { MDPClient } from './mdp-client'
+import appSettings from './app-settings'
 
 function createWindow(): void {
   // Create the browser window.
@@ -21,6 +22,7 @@ function createWindow(): void {
   const mdpclient: MDPClient = new MDPClient(10, 'tcp://localhost:5051', 'C01')
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    mainWindow?.webContents.send('onGetSensors', appSettings.sensors)
 
     scdclient.on((connected) => {
       mainWindow?.webContents.send('connectionChanged', connected)
@@ -39,10 +41,10 @@ function createWindow(): void {
     })
     setInterval(() => {
       getSensors()
-    }, 10000)
+    }, 2500)
   })
   const getSensors = (): void => {
-    const sensors = ['map', 'radar']
+    const sensors = appSettings.sensors
     for (const item of sensors) {
       scdclient.send('mmi.service', item)
     }

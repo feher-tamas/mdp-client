@@ -17,6 +17,9 @@ const api = {
   sendMessage: (servicename, request): void => {
     console.log(`Preload ${servicename}`)
     ipcRenderer.send('sendMessage', { servicename, request })
+  },
+  onGetSensors: (callback: (sensors: string[]) => void): void => {
+    ipcRenderer.on('onGetSensors', (_, sensors) => callback(sensors))
   }
 }
 

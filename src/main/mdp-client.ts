@@ -46,7 +46,8 @@ export class MDPClient {
       return
     }
     if (this.queue.length > this.max) {
-      throw new Error('Queue is full')
+      console.log(`Queue is full : ${this.queue.length}`)
+      return
     }
     this.queue.push([this.MDP_CLIENT_HEADER, servicename, request])
     this.trySend()
@@ -65,6 +66,7 @@ export class MDPClient {
       }
       await this.socket.send(multipartMessage)
       const [...res] = await this.socket.receive()
+      console.log(this.queue.length)
       this.handleAnswerArrivedEvent(multipartMessage, res[2].toString())
     }
     this.sending = false

@@ -4,8 +4,9 @@
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
-    "src/preload/*.d.ts"
-, "src/main/mdp-client.ts"  ],
+    "src/preload/*.d.ts",
+    "src/shared/**/*.ts"
+,"src/main/mdp-client.ts"  ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
