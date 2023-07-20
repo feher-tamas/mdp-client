@@ -17,6 +17,8 @@ function App(): JSX.Element {
   const [serviceName, setServiceName] = useState('')
   const [message, setMessage] = useState('')
   const [responses, setResponses] = useState<string>()
+  const [timeTaken, setTimeTaken] = useState<number>()
+  let start: Date = new Date()
   const updateService = useCallback((name: string, status: string): void => {
     console.log(name)
     setServices((services) =>
@@ -25,6 +27,7 @@ function App(): JSX.Element {
   }, [])
 
   const sendMessage = useCallback((servicename: string, request: string): void => {
+    start = new Date()
     console.log(`servicename ${servicename}`)
     window.main.sendMessage(servicename, request)
   }, [])
@@ -45,6 +48,9 @@ function App(): JSX.Element {
   }, [])
   useEffect(() => {
     window.main.onMessageArrived((message) => {
+      const receiveDate = new Date().getTime()
+      const responseTimeMs = receiveDate - start
+      setTimeTaken(responseTimeMs)
       addResponses(message)
     })
   }, [])
@@ -86,6 +92,9 @@ function App(): JSX.Element {
       <button onClick={() => sendMessage(serviceName, message)}> Send Message</button>
       <div>
         response :<span>{responses}</span>
+      </div>
+      <div>
+        responseTime :<span>{timeTaken} ms</span>
       </div>
     </>
   )
